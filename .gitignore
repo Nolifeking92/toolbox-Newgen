@@ -1,0 +1,190 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Flask
+instance/
+.webassets-cache
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
+toolbox.log
+defense_simulation.log
+
+# Reports and analysis
+analysis/reports/
+analysis/samples/
+reports/
+samples/
+
+# Docker
+.dockerignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Security
+*.key
+*.pem
+*.crt
+*.p12
+passwords.txt
+secrets.txt
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Backup files
+*.bak
+*.backup
+backup/
+
+# Configuration files with sensitive data
+config.ini
+settings.py
+.env.local
+.env.production
+
+# Test coverage
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Environnements virtuels Python
+.venv/
+.venv_pdf/
+*.pyc
+
+# Logs et fichiers temporaires
+web/logs/
+*.tmp
+.pytest_cache/
+
+# Fichiers d'analyse et résultats
+analysis/samples/*
+analysis/reports/*
+web/results/*
+!analysis/samples/.gitkeep
+!analysis/reports/.gitkeep
+!web/results/.gitkeep
+
+# Base de données
+*.db
+instance/
+
+# Fichiers de test
+test_*.txt
+test.txt
+test_eicar.txt
+
+# Fichiers de mots de passe et wordlists personnalisées
+wordlist_*.txt
+pass_*.txt
+
+# Dossiers Docker
+data/
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Fichiers d'environnement
+*.env
+*.env
+
+# Fichiers de configuration IDE
+.vscode/
+.idea/
+*.swp
+*.swo 

@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}Scans - Toolbox Newgen Cyber{% endblock %}
+
+{% block content %}
+<div class="page-content">
+    <h2 class="page-title">Scans de sécurité</h2>
+    
+    <div class="scan-form">
+        <div class="tools-selection">
+            <h3>Sélection des outils</h3>
+            <div class="tools-grid">
+                <label class="tool-checkbox">
+                    <input type="checkbox" name="tools" value="nmap">
+                    <span class="checkbox-custom"></span>
+                    <span class="tool-name">Nmap</span>
+                    <span class="tool-desc">Scanner de ports et services</span>
+                </label>
+                
+                <label class="tool-checkbox">
+                    <input type="checkbox" name="tools" value="dirsearch">
+                    <span class="checkbox-custom"></span>
+                    <span class="tool-name">Dirsearch</span>
+                    <span class="tool-desc">Scanner de répertoires web</span>
+                </label>
+                
+                <label class="tool-checkbox">
+                    <input type="checkbox" name="tools" value="hydra">
+                    <span class="checkbox-custom"></span>
+                    <span class="tool-name">Hydra</span>
+                    <span class="tool-desc">Outil de bruteforce</span>
+                </label>
+
+                <label class="tool-checkbox">
+                    <input type="checkbox" name="tools" value="sqlmap" id="sqlmap-checkbox">
+                    <span class="checkbox-custom"></span>
+                    <span class="tool-name">SQLmap</span>
+                    <span class="tool-desc">Détection et exploitation d'injections SQL</span>
+                </label>
+                <label class="tool-checkbox">
+                    <input type="checkbox" name="tools" value="zap" id="zap-checkbox">
+                    <span class="checkbox-custom"></span>
+                    <span class="tool-name">OWASP ZAP</span>
+                    <span class="tool-desc">Scanner de vulnérabilités web</span>
+                </label>
+                <label class="tool-checkbox">
+                    <input type="checkbox" name="tools" value="john" id="john-checkbox">
+                    <span class="checkbox-custom"></span>
+                    <span class="tool-name">John the Ripper</span>
+                    <span class="tool-desc">Crack de mots de passe (hashes)</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="target-input">
+            <h3>Cible</h3>
+            <input type="text" id="target" placeholder="IP, domaine ou chemin..." class="cyber-input">
+        </div>
+
+        <div class="scan-profile-select" id="scan-profile-select" style="margin-bottom:15px;display:none;">
+            <label for="scan-profile"><b>Profil de scan :</b></label>
+            <select id="scan-profile" class="cyber-input">
+                <option value="rapide">Rapide</option>
+                <option value="complet">Complet</option>
+                <option value="furtif">Furtif</option>
+                <option value="personnalise">Personnalisé</option>
+            </select>
+            <input type="text" id="custom-nmap-options" class="cyber-input" placeholder="Options Nmap personnalisées (ex: -T4 -A)" style="display:none;margin-top:8px;" />
+        </div>
+
+        <div id="hydra-options" style="display:none; margin-top:15px;">
+            <h3>Options Hydra</h3>
+            <label>Nom d'utilisateur :
+                <input type="text" id="hydra-username" placeholder="ex: admin ou Mahamadou" class="cyber-input">
+            </label>
+            <label>Mot de passe ou fichier :
+                <input type="text" id="hydra-password" placeholder="ex: password123 ou pass.txt" class="cyber-input">
+            </label>
+            <label>Fichier de mots de passe :
+                <input type="file" id="hydra-passfile" class="cyber-input">
+            </label>
+            <label>Service/URL (optionnel) :
+                <input type="text" id="hydra-service" placeholder="ex: http-post-form:/login:..." class="cyber-input">
+            </label>
+        </div>
+
+        <div id="hydra-passlist-select" style="display:none; margin-top:10px;">
+            <label>Choisir un fichier de mots de passe :
+                <select id="hydra-passlist" class="cyber-input">
+                    <option value="">-- Aucun --</option>
+                    <option value="pass_simple.txt">Simple</option>
+                    <option value="pass_moyen.txt">Moyen</option>
+                    <option value="pass_complexe.txt">Complexe</option>
+                </select>
+            </label>
+        </div>
+
+        <div id="dirsearch-options" style="display:none; margin-top:15px;">
+            <h3>Options Dirsearch</h3>
+            <label>Options personnalisées :
+                <input type="text" id="dirsearch-extra" placeholder="ex: -e php,html,txt -t 20 --random-agents" class="cyber-input">
+            </label>
+            <div style="font-size:0.9em;color:#888;">Exemples :<br>- <b>-e php,html,txt</b> (extensions)<br>- <b>-t 20</b> (threads)<br>- <b>--random-agents</b> (user-agents aléatoires)</div>
+        </div>
+        <div id="clamav-options" style="display:none; margin-top:15px;">
+            <h3>Options ClamAV</h3>
+            <label>Options personnalisées :
+                <input type="text" id="clamav-extra" placeholder="ex: --recursive --infected --max-filesize=5M" class="cyber-input">
+            </label>
+            <div style="font-size:0.9em;color:#888;">Exemples :<br>- <b>--recursive</b> (scan récursif)<br>- <b>--infected</b> (afficher seulement les infectés)<br>- <b>--remove</b> (supprimer les infectés)<br>- <b>--max-filesize=5M</b> (taille max)</div>
+        </div>
+
+        <div id="sqlmap-options" style="display:none; margin-top:15px;">
+            <h3>Options SQLmap</h3>
+            <label>URL cible :
+                <input type="text" id="sqlmap-url" placeholder="ex: http://site.com/page.php?id=1" class="cyber-input">
+            </label>
+            <label>Options personnalisées :
+                <input type="text" id="sqlmap-extra" placeholder="ex: --batch --risk=3" class="cyber-input">
+            </label>
+            <div style="font-size:0.9em;color:#888;">Exemples :<br>- <b>--batch</b> (mode non interactif)<br>- <b>--risk=3</b> (niveau de risque)</div>
+        </div>
+        <div id="zap-options" style="display:none; margin-top:15px;">
+            <h3>Options ZAP</h3>
+            <label>URL cible :
+                <input type="text" id="zap-url" placeholder="ex: http://site.com" class="cyber-input">
+            </label>
+            <label>Options personnalisées :
+                <input type="text" id="zap-extra" placeholder="ex: -t 10 -r" class="cyber-input">
+            </label>
+            <div style="font-size:0.9em;color:#888;">Exemples :<br>- <b>-t 10</b> (threads)<br>- <b>-r</b> (rapport HTML)</div>
+        </div>
+
+        <div id="john-options" style="display:none; margin-top:15px;">
+            <h3>Fichier de hash à cracker</h3>
+            <input type="file" id="john-hashfile" class="cyber-input">
+            <h3>Options John the Ripper</h3>
+            <label>Wordlist (optionnel) :
+                <input type="text" id="john-wordlist" placeholder="ex: /usr/share/wordlists/rockyou.txt" class="cyber-input">
+            </label>
+            <label>Format (optionnel) :
+                <input type="text" id="john-format" placeholder="ex: raw-md5, zip, etc." class="cyber-input">
+            </label>
+            <label>Mode (optionnel) :
+                <select id="john-mode" class="cyber-input">
+                    <option value="">-- Choisir --</option>
+                    <option value="single">Single crack</option>
+                    <option value="wordlist">Wordlist</option>
+                    <option value="incremental">Incremental</option>
+                </select>
+            </label>
+        </div>
+
+        <button id="launch-scans" class="cyber-button">
+            <span class="button-text">Lancer les scans</span>
+            <span class="button-glitch"></span>
+        </button>
+        <button id="clean-hydra-tmp" class="cyber-button" style="margin-top:15px;background:#ff3366;">Nettoyer les fichiers temporaires Hydra</button>
+        <div id="clean-hydra-tmp-result" style="margin-top:10px;color:#00ff88;font-weight:bold;"></div>
+    </div>
+
+    <div class="results-container">
+        <div id="nmap-result" class="tool-result" style="display: none;">
+            <h4>Résultats Nmap</h4>
+            <div class="result-content"></div>
+        </div>
+        
+        <div id="dirsearch-result" class="tool-result" style="display: none;">
+            <h4>Résultats Dirsearch</h4>
+            <div class="result-content"></div>
+        </div>
+        
+        <div id="clamav-result" class="tool-result" style="display: none;">
+            <h4>Résultats ClamAV</h4>
+            <div class="result-content"></div>
+        </div>
+        
+        <div id="hydra-result" class="tool-result" style="display: none;">
+            <h4>Résultats Hydra</h4>
+            <div class="result-content"></div>
+        </div>
+        
+        <div id="zap-result" class="tool-result" style="display: none;">
+            <h4>Résultats ZAP</h4>
+            <div class="result-content"></div>
+        </div>
+
+        <div id="sqlmap-result" class="tool-result" style="display: none;">
+            <div class="result-content"></div>
+        </div>
+
+        <div id="john-result" class="tool-result" style="display: none;">
+            <h4>Résultats John the Ripper</h4>
+            <div class="result-content"></div>
+        </div>
+    </div>
+
+    <div id="defense-logs" style="margin-top:20px;"></div>
+    <div id="defense-blacklist" style="margin-top:10px;"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% endblock %} 

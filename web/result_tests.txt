@@ -1,0 +1,9 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.3, pytest-8.4.0, pluggy-1.6.0
+rootdir: /home/kali/toolboxNewgenBAckup/web
+plugins: anyio-4.9.0
+collected 8 items
+
+test_app.py ........                                                     [100%]
+
+============================== 8 passed in 9.99s ===============================

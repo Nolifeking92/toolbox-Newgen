@@ -1,0 +1,37 @@
+Scénarios d'acceptation utilisateur - Toolbox Newgen
+====================================================
+
+Scénario 1 : Connexion et accès au dashboard
+-------------------------------------------
+1. Aller sur la page de login.
+2. Saisir le nom d'utilisateur et le mot de passe (admin/admin par défaut).
+3. Valider.
+4. Vérifier que le dashboard s'affiche et que les statistiques sont présentes.
+
+Scénario 2 : Lancer un scan Nmap
+--------------------------------
+1. Se connecter.
+2. Aller sur la page "Scans".
+3. Sélectionner l'outil "Nmap".
+4. Entrer une cible (ex : 127.0.0.1).
+5. Lancer le scan.
+6. Vérifier que le résultat s'affiche et qu'un rapport est généré.
+
+Scénario 3 : Télécharger un rapport
+-----------------------------------
+1. Après un scan, aller dans la section "Rapports".
+2. Cliquer sur le bouton de téléchargement du rapport souhaité (TXT, PDF, etc.).
+3. Vérifier que le fichier est bien téléchargé et lisible.
+
+Scénario 4 : Test de sécurité d'accès
+-------------------------------------
+1. Se déconnecter.
+2. Tenter d'accéder à /dashboard ou à une page protégée.
+3. Vérifier qu'on est bien redirigé vers la page de login.
+
+Scénario 5 : Soumettre un feedback
+----------------------------------
+1. Se connecter.
+2. Aller sur la page "Feedback".
+3. Remplir le formulaire et soumettre un avis.
+4. Vérifier que le message de remerciement s'affiche. 

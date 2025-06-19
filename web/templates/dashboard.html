@@ -1,0 +1,422 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Toolbox Newgen Cyber{% endblock %}
+
+{% block content %}
+<div style="position:relative;min-height:100vh;">
+    <!-- Grille animée cyber en fond -->
+    <canvas id="cyberGrid" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;"></canvas>
+    <div class="page-content" style="position:relative;z-index:1;">
+        <h2 class="page-title">Tableau de bord</h2>
+        
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <h3>Scans récents</h3>
+                <div class="card-content">
+                    <div class="scan-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">{{ stats.total_scans }}</span>
+                            <span class="stat-label">Total des scans</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">{{ stats.recent_scans }}</span>
+                            <span class="stat-label">Scans récents</span>
+                        </div>
+                    </div>
+                    <div class="recent-list">
+                        {% if recent_scans %}
+                            {% for scan in recent_scans %}
+                            <div class="recent-item">
+                                <span class="tool-icon">{{ scan.tool_icon }}</span>
+                                <div class="scan-info">
+                                    <span class="scan-tool">{{ scan.tool }}</span>
+                                    <span class="scan-target">{{ scan.target }}</span>
+                                </div>
+                                <span class="scan-time">{{ scan.timestamp }}</span>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="no-data">Aucun scan récent</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-card">
+                <h3>Vulnérabilités détectées</h3>
+                <div class="card-content">
+                    <div class="vuln-stats">
+                        <div class="stat-item critical">
+                            <span class="stat-value">{{ stats.critical_vulns }}</span>
+                            <span class="stat-label">Critiques</span>
+                        </div>
+                        <div class="stat-item high">
+                            <span class="stat-value">{{ stats.high_vulns }}</span>
+                            <span class="stat-label">Élevées</span>
+                        </div>
+                        <div class="stat-item medium">
+                            <span class="stat-value">{{ stats.medium_vulns }}</span>
+                            <span class="stat-label">Moyennes</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Ancien encart activité système supprimé pour éviter le doublon #}
+            {#
+            <div class="dashboard-card">
+                <h3>Activité système</h3>
+                <div class="card-content">
+                    <div class="system-stats">
+                        <div class="stat-item">
+                            <span class="stat-value" id="cpu-val">{{ stats.cpu_usage }}%</span>
+                            <span class="stat-label">CPU</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="mem-val">{{ stats.mem_usage }}%</span>
+                            <span class="stat-label">Mémoire</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="disk-val">{{ stats.disk_usage }}%</span>
+                            <span class="stat-label">Disque</span>
+                        </div>
+                    </div>
+                    <div class="system-bars">
+                        <div class="system-bar">
+                            <div class="system-bar-fill" id="cpu-bar"></div>
+                            <div class="system-bar-label">CPU</div>
+                            <div class="system-bar-value" id="cpu-bar-val"></div>
+                        </div>
+                        <div class="system-bar">
+                            <div class="system-bar-fill" id="mem-bar"></div>
+                            <div class="system-bar-label">Mémoire</div>
+                            <div class="system-bar-value" id="mem-bar-val"></div>
+                        </div>
+                        <div class="system-bar">
+                            <div class="system-bar-fill" id="disk-bar"></div>
+                            <div class="system-bar-label">Disque</div>
+                            <div class="system-bar-value" id="disk-bar-val"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            #}
+        </div>
+
+        <!-- Bloc Alertes -->
+        <div class="dashboard-card" style="border-color:#ff2e92;">
+            <h3 style="color:#ff2e92;">Alertes</h3>
+            <div class="card-content">
+                {% if alerts %}
+                    <ul>
+                        {% for alert in alerts %}
+                            <li style="color:#ff2e92;font-weight:bold;">{{ alert }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <span style="color:#888;">Aucune alerte récente</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="dashboard-card">
+            <h3>Nouveau scan</h3>
+            <div class="card-content">
+                <form action="/scan" method="post">
+                    <input type="text" name="target" placeholder="URL ou IP" required>
+                    <button type="submit">Lancer le scan</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="dashboard-card system-monitor-card" style="max-width:420px;">
+            <h3>Utilisation du système</h3>
+            <div class="sys-row">
+                <div class="sys-label">CPU</div>
+                <div class="sys-bar-bg"><div class="sys-bar-fill" id="sys-cpu-bar"></div></div>
+                <div class="sys-val" id="sys-cpu-val">...</div>
+            </div>
+            <div class="sys-row">
+                <div class="sys-label">RAM</div>
+                <div class="sys-bar-bg"><div class="sys-bar-fill" id="sys-ram-bar"></div></div>
+                <div class="sys-val" id="sys-ram-val">...</div>
+            </div>
+            <div class="sys-row">
+                <div class="sys-label">Disque</div>
+                <div class="sys-bar-bg"><div class="sys-bar-fill" id="sys-disk-bar"></div></div>
+                <div class="sys-val" id="sys-disk-val">...</div>
+            </div>
+            <div class="sys-row">
+                <div class="sys-label">Load avg</div>
+                <div class="sys-val" id="sys-load-val" style="flex:1;text-align:left;">...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    margin-top: 20px;
+}
+
+.dashboard-card {
+    background: var(--darker-bg);
+    border: 1px solid var(--neon-cyan);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 0 12px 0 rgba(0,255,187,0.12), 0 0 0 2px rgba(0,255,187,0.08) inset;
+    transition: box-shadow 0.4s, border-color 0.3s;
+    position: relative;
+    z-index: 2;
+}
+
+.dashboard-card:hover {
+    box-shadow: 0 0 32px 4px var(--neon-cyan), 0 0 0 2px var(--neon-cyan) inset;
+    border-color: #00ffe0;
+    animation: neon-pulse 1.2s infinite alternate;
+}
+
+@keyframes neon-pulse {
+    0% { box-shadow: 0 0 32px 4px var(--neon-cyan), 0 0 0 2px var(--neon-cyan) inset; }
+    100% { box-shadow: 0 0 48px 8px #00ffe0, 0 0 0 3px #00ffe0 inset; }
+}
+
+.dashboard-card h3 {
+    color: var(--neon-cyan);
+    margin-bottom: 20px;
+    font-size: 1.2em;
+}
+
+.card-content {
+    min-height: 200px;
+}
+
+.scan-stats, .vuln-stats, .system-stats {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    display: block;
+    font-size: 2em;
+    color: var(--neon-cyan);
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+.recent-list {
+    margin-top: 20px;
+}
+
+.recent-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid rgba(0, 255, 187, 0.1);
+}
+
+.tool-icon {
+    font-size: 1.2em;
+    margin-right: 15px;
+}
+
+.scan-info {
+    flex: 1;
+}
+
+.scan-tool {
+    display: block;
+    color: var(--neon-cyan);
+    font-weight: bold;
+}
+
+.scan-target {
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+.scan-time {
+    font-size: 0.8em;
+    opacity: 0.6;
+}
+
+.stat-item.critical .stat-value { color: #FF3366; }
+.stat-item.high .stat-value { color: #FF9933; }
+.stat-item.medium .stat-value { color: #FFCC00; }
+
+.no-data {
+    text-align: center;
+    padding: 20px;
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+}
+
+#cyberGrid {
+    width: 100vw;
+    height: 100vh;
+    display: block;
+    opacity: 0.22;
+    filter: drop-shadow(0 0 12px #00FFBB);
+    background: transparent;
+    transition: opacity 0.3s;
+}
+
+.system-monitor-card {
+    background: var(--darker-bg);
+    border: 1.5px solid var(--neon-cyan);
+    border-radius: 10px;
+    padding: 20px 24px 18px 24px;
+    color: #fff;
+    box-shadow: 0 0 12px 0 rgba(0,255,187,0.12), 0 0 0 2px rgba(0,255,187,0.08) inset;
+    margin-bottom: 24px;
+}
+.system-monitor-card h3 {
+    color: var(--neon-cyan);
+    margin-bottom: 18px;
+    font-size: 1.2em;
+}
+.sys-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+.sys-label {
+    width: 60px;
+    font-weight: bold;
+    color: #00ffbb;
+    font-size: 1em;
+}
+.sys-bar-bg {
+    flex: 1;
+    height: 16px;
+    background: #222b2b;
+    border-radius: 8px;
+    margin: 0 12px;
+    overflow: hidden;
+    border: 1px solid #00ffbb33;
+}
+.sys-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #00ffbb 0%, #ffcc00 100%);
+    border-radius: 8px 0 0 8px;
+    transition: width 0.5s;
+}
+.sys-val {
+    min-width: 90px;
+    text-align: right;
+    font-family: monospace;
+    font-size: 1em;
+    color: #fff;
+}
+</style>
+
+<script>
+// Grille animée style Tron + scan laser
+const gridCanvas = document.getElementById('cyberGrid');
+if (gridCanvas) {
+    function resizeGrid() {
+        gridCanvas.width = window.innerWidth;
+        gridCanvas.height = window.innerHeight;
+    }
+    resizeGrid();
+    window.addEventListener('resize', resizeGrid);
+    const ctx = gridCanvas.getContext('2d');
+    let t = 0;
+    function drawGrid() {
+        ctx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
+        const w = gridCanvas.width;
+        const h = gridCanvas.height;
+        const spacing = 48;
+        ctx.save();
+        // Grille horizontale
+        for (let y = 0; y < h; y += spacing) {
+            ctx.beginPath();
+            ctx.moveTo(0, y + Math.sin((t/18)+(y/60))*6);
+            ctx.lineTo(w, y + Math.sin((t/18)+(y/60))*6);
+            ctx.strokeStyle = 'rgba(0,255,187,0.22)';
+            ctx.lineWidth = 1.2;
+            ctx.shadowColor = '#00FFBB';
+            ctx.shadowBlur = 6;
+            ctx.stroke();
+        }
+        // Grille verticale
+        for (let x = 0; x < w; x += spacing) {
+            ctx.beginPath();
+            ctx.moveTo(x + Math.cos((t/22)+(x/80))*6, 0);
+            ctx.lineTo(x + Math.cos((t/22)+(x/80))*6, h);
+            ctx.strokeStyle = 'rgba(0,255,187,0.18)';
+            ctx.lineWidth = 1.1;
+            ctx.shadowColor = '#00FFBB';
+            ctx.shadowBlur = 5;
+            ctx.stroke();
+        }
+        ctx.restore();
+        // Scan laser
+        const scanY = (h/8) + ((h-80) * ((Math.sin(t/40)+1)/2));
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(0, scanY);
+        ctx.lineTo(w, scanY);
+        ctx.strokeStyle = 'rgba(0,255,255,0.55)';
+        ctx.lineWidth = 4.5;
+        ctx.shadowColor = '#00FFFF';
+        ctx.shadowBlur = 18;
+        ctx.globalAlpha = 0.7 + 0.3*Math.sin(t/10);
+        ctx.stroke();
+        ctx.restore();
+        t += 1;
+        requestAnimationFrame(drawGrid);
+    }
+    drawGrid();
+}
+
+// Barres d'activité système dynamiques
+function setSystemBar(id, value) {
+    const bar = document.getElementById(id+"-bar");
+    const barVal = document.getElementById(id+"-bar-val");
+    bar.style.height = Math.max(8, value*1.12) + "%";
+    let color = "#00FFBB";
+    if (value > 80) color = "#FF0066";
+    else if (value > 60) color = "#FF9933";
+    else if (value > 40) color = "#FFCC00";
+    bar.style.background = color;
+    barVal.textContent = value.toFixed(1) + "%";
+    barVal.style.color = color;
+}
+window.addEventListener('DOMContentLoaded', function() {
+    setSystemBar('cpu', parseFloat(document.getElementById('cpu-val').textContent));
+    setSystemBar('mem', parseFloat(document.getElementById('mem-val').textContent));
+    setSystemBar('disk', parseFloat(document.getElementById('disk-val').textContent));
+});
+
+function updateSystemStats() {
+    fetch('/api/system-stats').then(r => r.json()).then(stats => {
+        // CPU
+        document.getElementById('sys-cpu-val').textContent = stats.cpu_percent + ' %';
+        document.getElementById('sys-cpu-bar').style.width = stats.cpu_percent + '%';
+        // RAM
+        document.getElementById('sys-ram-val').textContent = stats.ram_percent + ' % (' + (stats.ram_used/1e9).toFixed(2) + 'G/' + (stats.ram_total/1e9).toFixed(2) + 'G)';
+        document.getElementById('sys-ram-bar').style.width = stats.ram_percent + '%';
+        // Disque
+        document.getElementById('sys-disk-val').textContent = stats.disk_percent + ' % (' + (stats.disk_used/1e9).toFixed(2) + 'G/' + (stats.disk_total/1e9).toFixed(2) + 'G)';
+        document.getElementById('sys-disk-bar').style.width = stats.disk_percent + '%';
+        // Load
+        document.getElementById('sys-load-val').textContent = stats.load_avg ? stats.load_avg.map(x=>x.toFixed(2)).join(' / ') : 'N/A';
+    });
+}
+setInterval(updateSystemStats, 3000);
+updateSystemStats();
+</script>
+{% endblock %} 

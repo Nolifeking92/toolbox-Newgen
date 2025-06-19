@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2 style="margin-bottom:24px;color:#00ffc8;text-shadow:0 0 8px #00ffc8;">Gestion Défensive (Admin)</h2>
+<div class="row">
+  <div class="col-12 col-lg-10 mx-auto">
+    <div class="defense-panel">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h4 style="color:#00ffc8;margin-bottom:0;text-shadow:0 0 6px #00ffc8;">IP Blacklistées</h4>
+        <button class="btn btn-sm btn-info neon-btn" onclick="refreshBlacklist()">Rafraîchir</button>
+      </div>
+      <div id="msg" style="margin-bottom:10px;"></div>
+      <div class="table-responsive">
+        <table class="table table-dark table-hover table-bordered neon-table" id="blacklist-table" style="min-width:900px;">
+          <thead>
+            <tr style="font-size:1.08em;">
+              <th style="width:20%;color:#00ffc8;border-right:2px solid #00ffc8;">IP</th>
+              <th style="width:22%;color:#00ffc8;border-right:2px solid #00ffc8;">Date de blocage</th>
+              <th style="width:38%;color:#00ffc8;border-right:2px solid #00ffc8;">Motif</th>
+              <th style="width:20%;color:#00ffc8;">Action</th>
+            </tr>
+          </thead>
+          <tbody id="blacklist-body">
+            <tr><td colspan="4">Chargement...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-8 mx-auto">
+    <div class="defense-panel">
+      <h4 style="color:#00ffc8;margin-bottom:18px;text-shadow:0 0 6px #00ffc8;">Logs Défensifs</h4>
+      <div style="max-height:350px;overflow:auto;background:#181c20;color:#ff2e92;padding:10px;font-family:monospace;font-size:0.97em;border-radius:8px;border:1.5px solid #00ffc8;box-shadow:0 0 8px #00ffc8;">
+        {% for log in logs %}
+          <div>{{ log }}</div>
+        {% else %}
+          <div>Aucun log défensif</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row mt-4">
+  <div class="col-12 col-lg-10 mx-auto">
+    <div class="defense-panel" style="background:#181c20ee;">
+      <h4 style="color:#ffe066;text-shadow:0 0 6px #ffe066;">🛡️ Contre-mesures recommandées</h4>
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <div class="counter-card hydra-card" tabindex="0" data-bs-toggle="tooltip" title="Hydra est souvent détecté par la fréquence de ses tentatives. Ralentir et varier les attaques réduit le risque de blocage.">
+            <div class="counter-icon"><span style="font-size:2em;">💧</span></div>
+            <div class="counter-title">Hydra&nbsp;: Limitez la fréquence</div>
+            <ul class="counter-list">
+              <li><b>Utilisez <span class='badge-motif badge-hydra'>-t 2</span></b> pour limiter le nombre de threads.</li>
+              <li><b>Ajoutez des délais</b> entre les tentatives (<span class='badge-motif badge-hydra'>-W</span> ou <span class='badge-motif badge-hydra'>-s</span>).</li>
+              <li><b>Variez les IP sources</b> (VPN, proxy, Tor).</li>
+              <li><b>Privilégiez les attaques ciblées</b> plutôt que massives.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <div class="counter-card nmap-card" tabindex="0" data-bs-toggle="tooltip" title="Les scans Nmap agressifs sont vite repérés. Privilégiez la discrétion et espacez vos scans pour éviter d'être blacklisté.">
+            <div class="counter-icon"><span style="font-size:2em;">🌐</span></div>
+            <div class="counter-title">Nmap&nbsp;: Scannez prudemment</div>
+            <ul class="counter-list">
+              <li><b>Évitez <span class='badge-motif badge-nmap'>-T5</span></b> (préférez <span class='badge-motif badge-nmap'>-T2</span> ou <span class='badge-motif badge-nmap'>-T3</span>).</li>
+              <li><b>Espacer les scans</b> dans le temps.</li>
+              <li><b>Utilisez des options de furtivité</b> (<span class='badge-motif badge-nmap'>-sS</span>, <span class='badge-motif badge-nmap'>-D</span>, <span class='badge-motif badge-nmap'>-f</span>).</li>
+              <li><b>Ne ciblez pas toujours la même IP</b>.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="text-muted mt-2" style="font-size:0.98em;">Passez la souris sur une carte pour plus d'explications.</div>
+    </div>
+  </div>
+</div>
+<style>
+.defense-panel {
+  background: #181c20;
+  border: 2px solid #00ffc8;
+  border-radius: 12px;
+  box-shadow: 0 0 12px #00ffc844;
+  padding: 18px 18px 12px 18px;
+  margin-bottom: 24px;
+}
+.neon-table {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1.5px solid #00ffc8;
+  box-shadow: 0 0 8px #00ffc8;
+}
+#blacklist-table th, #blacklist-table td {
+  vertical-align: middle;
+  text-align: center;
+  border-color: #00ffc8 !important;
+  border-right: 2px solid #00ffc8 !important;
+}
+#blacklist-table th:last-child, #blacklist-table td:last-child {
+  border-right: none !important;
+}
+.badge-motif {
+  font-size: 0.93em;
+  padding: 0.25em 0.8em;
+  border-radius: 1em;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  box-shadow: 0 0 6px #222;
+  border: 1.5px solid #222;
+  display: inline-block;
+  min-width: 90px;
+}
+.badge-hydra { background: #ff2e92; color: #fff; box-shadow:0 0 8px #ff2e92aa; }
+.badge-nmap { background: #ffe066; color: #222; box-shadow:0 0 8px #ffe06688; }
+.badge-autre { background: #00ffc8; color: #222; box-shadow:0 0 8px #00ffc888; }
+.neon-btn {
+  background: linear-gradient(90deg,#00ffc8 0%,#ff2e92 100%);
+  color: #222;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  box-shadow: 0 0 8px #00ffc8;
+  transition: box-shadow 0.2s;
+}
+.neon-btn:hover {
+  box-shadow: 0 0 16px #ff2e92, 0 0 8px #00ffc8;
+  color: #fff;
+}
+.counter-card {
+  background: #23272b;
+  border: 2px solid #ffe066;
+  border-radius: 14px;
+  box-shadow: 0 0 12px #ffe06644;
+  padding: 18px 18px 10px 18px;
+  transition: box-shadow 0.2s, border-color 0.2s;
+  cursor: pointer;
+  min-height: 210px;
+  outline: none;
+}
+.counter-card:focus, .counter-card:hover {
+  box-shadow: 0 0 24px #00ffc8, 0 0 12px #ffe066;
+  border-color: #00ffc8;
+}
+.counter-icon {
+  margin-bottom: 8px;
+  text-align: center;
+}
+.counter-title {
+  color: #ffe066;
+  font-size: 1.15em;
+  font-weight: 600;
+  margin-bottom: 8px;
+  text-align: center;
+  text-shadow: 0 0 6px #ffe066;
+}
+.counter-list {
+  color: #fff;
+  font-size: 1em;
+  margin-left: 0;
+  padding-left: 18px;
+}
+.counter-list li {
+  margin-bottom: 6px;
+  text-align: left;
+}
+</style>
+<script>
+function badgeMotif(motif) {
+  if(motif.includes('Hydra')) return '<span class="badge-motif badge-hydra">Hydra (brute-force)</span>';
+  if(motif.includes('Nmap')) return '<span class="badge-motif badge-nmap">Nmap (fréquence)</span>';
+  return '<span class="badge-motif badge-autre">Autre</span>';
+}
+function refreshBlacklist() {
+  fetch('/api/defense-blacklist')
+    .then(r => r.json())
+    .then(data => {
+      let body = '';
+      if(data.blacklist.length === 0) {
+        body = '<tr><td colspan="4">Aucune IP blacklistée</td></tr>';
+      } else {
+        for(const entry of data.blacklist) {
+          body += `<tr id="row-${entry.ip}">
+            <td style='font-family:monospace;font-size:1.05em;'>${entry.ip}</td>
+            <td>${entry.date || '-'}</td>
+            <td>${badgeMotif(entry.motif)}</td>
+            <td><button class="btn btn-danger btn-sm neon-btn" onclick="removeIP('${entry.ip}')">Supprimer</button></td>
+          </tr>`;
+        }
+      }
+      document.getElementById('blacklist-body').innerHTML = body;
+    });
+}
+function removeIP(ip) {
+  if(!confirm('Retirer ' + ip + ' de la blacklist ?')) return;
+  fetch('/remove-from-blacklist', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ip })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if(data.status === 'success') {
+      document.getElementById('row-' + ip).remove();
+      showMsg('IP ' + ip + ' supprimée de la blacklist.', 'success');
+    } else {
+      showMsg(data.error || 'Erreur lors de la suppression', 'danger');
+    }
+  });
+}
+function showMsg(msg, type) {
+  let color = type === 'success' ? '#00ffc8' : '#ff2e92';
+  document.getElementById('msg').innerHTML = `<span style='color:${color};font-weight:bold;'>${msg}</span>`;
+  setTimeout(()=>{ document.getElementById('msg').innerHTML = ''; }, 3000);
+}
+// Infobulles Bootstrap (si présent)
+document.addEventListener('DOMContentLoaded', function() {
+  refreshBlacklist();
+  if(window.bootstrap) {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+  }
+});
+</script>
+{% endblock %} 

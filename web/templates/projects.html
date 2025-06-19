@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Mes Projets{% endblock %}
+{% block content %}
+<div class="page-content">
+    <h2 class="page-title">Mes Projets</h2>
+    <a href="{{ url_for('new_project') }}" class="cyber-button" style="margin-bottom:20px;">Nouveau projet</a>
+    <div style="max-width:900px;margin:0 auto;">
+    <table class="cyber-table" style="width:100%;background:rgba(0,255,187,0.03);border-radius:8px;overflow:hidden;">
+        <thead style="background:rgba(0,255,187,0.08);">
+            <tr style="color:var(--neon-cyan);font-weight:bold;">
+                <th style="padding:10px 8px;">Nom</th>
+                <th style="padding:10px 8px;">Client</th>
+                <th style="padding:10px 8px;">Date début</th>
+                <th style="padding:10px 8px;">Date fin</th>
+                <th style="padding:10px 8px;">Statut</th>
+                <th style="padding:10px 8px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for project in projects %}
+            <tr style="border-bottom:1px solid rgba(0,255,187,0.08);">
+                <td style="padding:8px 6px;">{{ project.name }}</td>
+                <td style="padding:8px 6px;">{{ project.client or '' }}</td>
+                <td style="padding:8px 6px;">{{ project.start_date or '' }}</td>
+                <td style="padding:8px 6px;">{{ project.end_date or '' }}</td>
+                <td style="padding:8px 6px;">{{ project.status }}</td>
+                <td style="padding:8px 6px;">
+                    <a href="{{ url_for('project_detail', project_id=project.id) }}" class="cyber-button" style="padding:4px 12px;font-size:0.95em;background:linear-gradient(90deg,#00ffbb,#3366ff);">Voir</a>
+                    <a href="{{ url_for('edit_project', project_id=project.id) }}" class="cyber-button" style="padding:4px 12px;font-size:0.95em;">Éditer</a>
+                    <form action="{{ url_for('delete_project', project_id=project.id) }}" method="post" style="display:inline;">
+                        <button type="submit" class="cyber-button" style="padding:4px 12px;font-size:0.95em;margin-left:6px;background:linear-gradient(90deg,#ff3366,#00ffbb);" onclick="return confirm('Supprimer ce projet ?');">Supprimer</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endblock %} 

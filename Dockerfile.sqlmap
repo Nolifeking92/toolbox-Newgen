@@ -1,0 +1,18 @@
+FROM python:3.9-slim
+
+# Installation des dépendances
+RUN apt-get update && apt-get install -y \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Cloner sqlmap
+RUN git clone https://github.com/sqlmapproject/sqlmap.git /sqlmap
+
+# Créer les répertoires de travail
+RUN mkdir -p /targets /reports
+
+# Définir le répertoire de travail
+WORKDIR /targets
+
+# Commande par défaut
+CMD ["python", "/sqlmap/sqlmap.py", "--help"] 

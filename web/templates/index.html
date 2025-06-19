@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toolbox Newgen Cyber Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>
+            <span>Toolbox</span>
+            <span>Newgen</span>
+            <span>Cyber</span>
+        </h1>
+
+        <div class="nav-buttons">
+            <button class="nav-button active">Scans</button>
+            <button class="nav-button">Rapport</button>
+            <button class="nav-button">Graphique</button>
+        </div>
+
+        <div class="form-group">
+            <label for="tool">Outil :</label>
+            <select id="tool" name="tool">
+                <option value="nmap">Nmap</option>
+                <option value="dirsearch">Dirsearch</option>
+                <option value="clamav">ClamAV</option>
+                <option value="hydra">Hydra</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="target">Cible :</label>
+            <input type="text" id="target" name="target" placeholder="IP, domaine ou chemin...">
+        </div>
+
+        <button class="launch-btn">Lancer</button>
+
+        <div class="results-area">
+            <!-- Les résultats seront affichés ici -->
+        </div>
+    </div>
+
+    <script>
+        // Gestion des onglets
+        document.querySelectorAll('.nav-button').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+            });
+        });
+
+        // Scans
+        document.querySelector('.launch-btn').onclick = async function() {
+            const tool = document.getElementById('tool').value;
+            const target = document.getElementById('target').value;
+            document.querySelector('.results-area').innerText = 'Exécution en cours...';
+            const res = await fetch('/run_tool', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ tool, target })
+            });
+            const data = await res.json();
+            document.querySelector('.results-area').innerText = data.output || 'Terminé.';
+        };
+
+        // Rapport
+        document.querySelector('.nav-button').addEventListener('click', async function() {
+            const res = await fetch('/report_summary');
+            const data = await res.json();
+            let html = '';
+            if (data && data.summary) {
+                html += '<b>Nombre de scans :</b> ' + data.summary.total + '<br>';
+                html += '<b>Ports ouverts :</b> ' + data.summary.open_ports + '<br>';
+                html += '<b>Vulnérabilités :</b> ' + data.summary.vulns + '<br>';
+            } else {
+                html = 'Aucun résumé disponible.';
+            }
+            document.querySelector('.results-area').innerHTML = html;
+        });
+
+        // Graphique
+        document.querySelector('.nav-button').addEventListener('click', async function() {
+            const res = await fetch('/report_summary');
+            const data = await res.json();
+            const ctx = document.getElementById('chart').getContext('2d');
+            if (chart) chart.destroy();
+            chart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Ports ouverts', 'Ports fermés', 'Vulnérabilités'],
+                    datasets: [{
+                        data: [data.summary.open_ports, data.summary.closed_ports, data.summary.vulns],
+                        backgroundColor: ['#00ffc8', '#232837', '#ff0059'],
+                        borderColor: '#181c23',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: { labels: { color: '#00ffc8', font: { size: 16 } } }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

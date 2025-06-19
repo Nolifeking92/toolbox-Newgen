@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+{% block title %}Connexion{% endblock %}
+{% block content %}
+<style>
+.radar-bg {
+    position: absolute;
+    left: 0; right: 0; top: 0;
+    width: 100%;
+    height: 340px;
+    z-index: 1;
+    pointer-events: none;
+    overflow: visible;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+.radar-canvas {
+    width: 320px;
+    height: 320px;
+    display: block;
+    opacity: 0.4;
+    filter: drop-shadow(0 0 16px #00FFBB88);
+    position: relative;
+    z-index: 2;
+}
+.radar-glow {
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 340px;
+    height: 340px;
+    pointer-events: none;
+    z-index: 1;
+}
+.radar-glow-ellipse {
+    fill: none;
+    stroke: #00FFBB;
+    stroke-width: 8;
+    filter: blur(12px);
+    opacity: 0.7;
+    stroke-dasharray: 1068;
+    stroke-dashoffset: 0;
+    animation: radar-glow-pulse 2.5s infinite linear;
+}
+@keyframes radar-glow-pulse {
+    0% { opacity: 0.7; stroke-width: 8; }
+    50% { opacity: 1; stroke-width: 16; }
+    100% { opacity: 0.7; stroke-width: 8; }
+}
+.login-form-box {
+    position: relative;
+    z-index: 1;
+    min-width:320px;
+    max-width:400px;
+    width:100%;
+    padding:2em;
+    background: var(--darker-bg);
+    border-radius:10px;
+    box-shadow:0 0 10px var(--neon-cyan);
+    margin: 0 auto;
+    border: 1.5px solid var(--neon-cyan);
+}
+.logo-lock {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 1em;
+}
+.logo-lock svg {
+    width: 60px;
+    height: 60px;
+    display: block;
+}
+.login-label {
+    color: var(--neon-cyan);
+    font-weight: 500;
+    margin-bottom: 0.2em;
+    margin-top: 0.7em;
+    letter-spacing: 0.5px;
+}
+.cyber-button {
+    animation: btn-neon-pulse 2.2s infinite alternate;
+}
+@keyframes btn-neon-pulse {
+    0% { box-shadow: 0 0 8px #00FFBB, 0 0 16px #FF0066; }
+    100% { box-shadow: 0 0 24px #00FFBB, 0 0 32px #FF0066; }
+}
+</style>
+<div style="position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;">
+    <div class="radar-bg" style="top:0;left:0;right:0;position:absolute;">
+        <svg class="radar-glow" width="340" height="340">
+            <ellipse class="radar-glow-ellipse" cx="170" cy="170" rx="155" ry="155" />
+        </svg>
+        <canvas id="radarCanvas" class="radar-canvas"></canvas>
+    </div>
+    <form method="post" class="login-form-box" style="margin-top:340px;">
+        <div class="logo-lock">
+            <!-- Logo cadenas stylisé -->
+            <svg viewBox="0 0 64 64" fill="none">
+                <rect x="16" y="28" width="32" height="28" rx="6" fill="#00FFBB" fill-opacity="0.15" stroke="#00FFBB" stroke-width="2"/>
+                <rect x="24" y="16" width="16" height="18" rx="8" fill="#00FFBB" fill-opacity="0.25" stroke="#00FFBB" stroke-width="2"/>
+                <circle cx="32" cy="42" r="4" fill="#00FFBB"/>
+            </svg>
+            <span style="color:var(--neon-cyan);font-weight:bold;font-size:1.2em;">Secure Radar Login</span>
+        </div>
+        <h2 class="page-title">{{ t['login'] }}</h2>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <ul>
+            {% for category, message in messages %}
+              <li style="color:var(--neon-pink);font-weight:bold;">{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+        <label for="username">{{ t['username'] }}</label>
+        <input type="text" name="username" required class="cyber-input">
+        <label for="password">{{ t['password'] }}</label>
+        <input type="password" name="password" required class="cyber-input">
+        <button type="submit" class="cyber-button">{{ t['submit'] }}</button>
+    </form>
+</div>
+<script>
+// Radar réduit au-dessus du formulaire + point rouge animé
+const canvas = document.getElementById('radarCanvas');
+if (canvas) {
+    function resizeCanvas() {
+        canvas.width = 320;
+        canvas.height = 320;
+    }
+    resizeCanvas();
+    const ctx = canvas.getContext('2d');
+    let angle = 0;
+    let redDotVisible = false;
+    let redDotTimer = 0;
+    function drawRadar() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const cx = canvas.width/2;
+        const cy = canvas.height/2;
+        const maxR = 140;
+        // Cercles
+        ctx.save();
+        ctx.strokeStyle = '#00FFBB';
+        ctx.shadowColor = '#00FFBB';
+        ctx.shadowBlur = 10;
+        ctx.lineWidth = 2;
+        ctx.globalAlpha = 0.5;
+        for (let r = maxR*0.4; r <= maxR; r += maxR*0.2) {
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+            ctx.stroke();
+        }
+        ctx.restore();
+        // Lignes
+        ctx.save();
+        ctx.strokeStyle = '#00FFBB';
+        ctx.shadowColor = '#00FFBB';
+        ctx.shadowBlur = 8;
+        ctx.lineWidth = 1.5;
+        ctx.globalAlpha = 0.3;
+        for (let a = 0; a < 360; a += 45) {
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + maxR * Math.cos(a * Math.PI / 180), cy + maxR * Math.sin(a * Math.PI / 180));
+            ctx.stroke();
+        }
+        ctx.restore();
+        // Balayage radar
+        ctx.save();
+        ctx.globalAlpha = 0.5;
+        ctx.translate(cx, cy);
+        ctx.rotate(angle);
+        let grad = ctx.createRadialGradient(0,0,0,0,0,maxR);
+        grad.addColorStop(0, 'rgba(0,255,187,0.35)');
+        grad.addColorStop(1, 'rgba(0,255,187,0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.moveTo(0,0);
+        ctx.arc(0,0,maxR,0,Math.PI/6);
+        ctx.lineTo(0,0);
+        ctx.fill();
+        ctx.restore();
+        // Point rouge animé
+        if (redDotVisible) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(cx + maxR * 0.85 * Math.cos(angle + Math.PI/12), cy + maxR * 0.85 * Math.sin(angle + Math.PI/12), 7, 0, 2*Math.PI);
+            ctx.shadowColor = '#FF0033';
+            ctx.shadowBlur = 16;
+            ctx.fillStyle = '#FF0033';
+            ctx.globalAlpha = 0.95;
+            ctx.fill();
+            ctx.restore();
+        }
+        // Animation du point rouge (apparition/disparition)
+        redDotTimer -= 1;
+        if (redDotTimer <= 0) {
+            redDotVisible = !redDotVisible;
+            redDotTimer = redDotVisible ? 60 + Math.random()*40 : 40 + Math.random()*30;
+        }
+        angle += 0.02;
+        requestAnimationFrame(drawRadar);
+    }
+    drawRadar();
+}
+</script>
+{% endblock %} 

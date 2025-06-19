@@ -1,0 +1,417 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t['reports_title'] }}{% endblock %}
+
+{% block content %}
+<div class="page-content">
+    <h2 class="page-title">{{ t['reports_page_title'] }}</h2>
+
+    <div class="report-actions">
+        <button class="cyber-button" onclick="generatePDF()">
+            <span class="button-text">{{ t['generate_pdf'] }}</span>
+            <span class="button-glitch"></span>
+        </button>
+    </div>
+
+    <!-- Filtres par type d'outil -->
+    <div class="filter-container">
+        <h3>Filtrer par type d'outil :</h3>
+        <div class="filter-buttons">
+            <button class="filter-btn active" data-filter="all" onclick="filterReports('all')">
+                <span class="filter-icon">🔍</span> Tous
+            </button>
+            <button class="filter-btn" data-filter="hydra" onclick="filterReports('hydra')">
+                <span class="filter-icon">🔐</span> Hydra
+            </button>
+            <button class="filter-btn" data-filter="nmap" onclick="filterReports('nmap')">
+                <span class="filter-icon">🌐</span> Nmap
+            </button>
+            <button class="filter-btn" data-filter="dirsearch" onclick="filterReports('dirsearch')">
+                <span class="filter-icon">📁</span> Dirsearch
+            </button>
+            <button class="filter-btn" data-filter="malware" onclick="filterReports('malware')">
+                <span class="filter-icon">🦠</span> Malware
+            </button>
+            <button class="filter-btn" data-filter="sqlmap" onclick="filterReports('sqlmap')">
+                <span class="filter-icon">💉</span> SQLMap
+            </button>
+            <button class="filter-btn" data-filter="zap" onclick="filterReports('zap')">
+                <span class="filter-icon">🕷️</span> ZAP
+            </button>
+            <button class="filter-btn" data-filter="john" onclick="filterReports('john')">
+                <span class="filter-icon">🔓</span> John
+            </button>
+        </div>
+        <div class="filter-stats">
+            <span id="filter-count">Affichage de tous les rapports</span>
+        </div>
+    </div>
+
+    <div class="reports-container" id="reports-container">
+        {% for report in reports %}
+        <div class="report-card" data-tools="{{ report.tools|join(',')|lower }}">
+            <div class="report-header">
+                <h3>{{ report.title }}</h3>
+                <span class="report-date">{{ report.date }}</span>
+            </div>
+            
+            <div class="report-summary">
+                <div class="summary-item">
+                    <span class="summary-label">{{ t['tools_used'] }}</span>
+                    <div class="tools-list">
+                        {% for tool in report.tools %}
+                        <span class="tool-badge">{{ tool }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="summary-item">
+                    <span class="summary-label">{{ t['vulnerabilities'] }}</span>
+                    <div class="vuln-badges">
+                        <span class="vuln-badge critical">{{ report.vulns.critical }} {{ t['critical_vulns'] }}</span>
+                        <span class="vuln-badge high">{{ report.vulns.high }} {{ t['high_vulns'] }}</span>
+                        <span class="vuln-badge medium">{{ report.vulns.medium }} {{ t['medium_vulns'] }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="report-preview">
+                <pre>{{ report.preview }}</pre>
+            </div>
+            
+            <div class="report-actions">
+                <button class="action-btn view-btn" onclick="viewReport('{{ report.id }}')">
+                    <span class="icon">👁️</span> {{ t['view'] }}
+                </button>
+                <button class="action-btn download-btn" onclick="downloadReport('{{ report.id }}')">
+                    <span class="icon">⬇️</span> {{ t['download'] }}
+                </button>
+                <button class="action-btn delete-btn" onclick="deleteReport('{{ report.id }}')">
+                    <span class="icon">🗑️</span> {{ t['delete'] }}
+                </button>
+                <a href="{{ url_for('assign_report_project', report_id=report.id) }}" class="action-btn" style="background:var(--neon-cyan);color:#222;">
+                    Associer à un projet
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.report-actions {
+    margin-bottom: 30px;
+}
+
+.filter-container {
+    background: var(--darker-bg);
+    border: 1px solid var(--neon-cyan);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.filter-container h3 {
+    color: var(--neon-cyan);
+    margin: 0 0 15px 0;
+    font-size: 1.1em;
+}
+
+.filter-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.filter-btn {
+    background: var(--dark-bg);
+    border: 1px solid var(--neon-cyan);
+    color: var(--neon-cyan);
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9em;
+}
+
+.filter-btn:hover {
+    background: var(--neon-cyan);
+    color: var(--dark-bg);
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 255, 187, 0.3);
+}
+
+.filter-btn.active {
+    background: var(--neon-cyan);
+    color: var(--dark-bg);
+    box-shadow: 0 0 10px rgba(0, 255, 187, 0.5);
+}
+
+.filter-icon {
+    font-size: 1.1em;
+}
+
+.filter-stats {
+    color: var(--neon-cyan);
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+.reports-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 25px;
+}
+
+.report-card {
+    background: var(--darker-bg);
+    border: 1px solid var(--neon-cyan);
+    border-radius: 10px;
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+.report-card.hidden {
+    display: none;
+}
+
+.report-card.visible {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.report-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.report-header h3 {
+    color: var(--neon-cyan);
+    font-size: 1.2em;
+    margin: 0;
+}
+
+.report-date {
+    font-size: 0.9em;
+    opacity: 0.7;
+}
+
+.report-summary {
+    margin-bottom: 20px;
+}
+
+.summary-item {
+    margin-bottom: 15px;
+}
+
+.summary-label {
+    display: block;
+    color: var(--neon-cyan);
+    font-size: 0.9em;
+    margin-bottom: 8px;
+}
+
+.tools-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tool-badge {
+    background: rgba(0, 255, 187, 0.1);
+    color: var(--neon-cyan);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.vuln-badges {
+    display: flex;
+    gap: 10px;
+}
+
+.vuln-badge {
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.vuln-badge.critical {
+    background: rgba(255, 51, 102, 0.2);
+    color: #FF3366;
+}
+
+.vuln-badge.high {
+    background: rgba(255, 153, 51, 0.2);
+    color: #FF9933;
+}
+
+.vuln-badge.medium {
+    background: rgba(255, 204, 0, 0.2);
+    color: #FFCC00;
+}
+
+.report-preview {
+    background: rgba(0, 255, 187, 0.05);
+    border-radius: 5px;
+    padding: 15px;
+    margin: 20px 0;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.report-preview pre {
+    margin: 0;
+    font-family: monospace;
+    font-size: 0.9em;
+    white-space: pre-wrap;
+}
+
+.report-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.action-btn {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 4px;
+    background: var(--dark-bg);
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.action-btn .icon {
+    font-size: 1.1em;
+}
+
+.view-btn {
+    border: 1px solid var(--neon-cyan);
+    color: var(--neon-cyan);
+}
+
+.download-btn {
+    border: 1px solid var(--neon-pink);
+    color: var(--neon-pink);
+}
+
+.delete-btn {
+    border: 1px solid #FF3366;
+    color: #FF3366;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 255, 187, 0.2);
+}
+</style>
+
+{% block scripts %}
+<script>
+let currentFilter = 'all';
+
+function filterReports(filter) {
+    currentFilter = filter;
+    
+    // Mettre à jour les boutons
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
+    
+    // Filtrer les rapports
+    const reports = document.querySelectorAll('.report-card');
+    let visibleCount = 0;
+    
+    reports.forEach(report => {
+        const tools = report.getAttribute('data-tools');
+        
+        if (filter === 'all' || tools.includes(filter.toLowerCase())) {
+            report.classList.remove('hidden');
+            report.classList.add('visible');
+            visibleCount++;
+        } else if (filter === 'malware' && (tools.includes('clamav') || tools.includes('malware'))) {
+            // Cas spécial pour les rapports malware qui peuvent être nommés clamav ou malware
+            report.classList.remove('hidden');
+            report.classList.add('visible');
+            visibleCount++;
+        } else {
+            report.classList.add('hidden');
+            report.classList.remove('visible');
+        }
+    });
+    
+    // Mettre à jour le compteur
+    const filterCount = document.getElementById('filter-count');
+    if (filter === 'all') {
+        filterCount.textContent = `Affichage de tous les rapports (${visibleCount})`;
+    } else if (filter === 'malware') {
+        filterCount.textContent = `Rapports Malware : ${visibleCount} trouvé(s)`;
+    } else {
+        filterCount.textContent = `Rapports ${filter} : ${visibleCount} trouvé(s)`;
+    }
+}
+
+function generatePDF() {
+    fetch('/generate_pdf', {
+        method: 'POST'
+    })
+    .then(response => response.blob())
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'rapport_securite.pdf';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+    })
+    .catch(error => console.error('Erreur:', error));
+}
+
+function viewReport(reportId) {
+    window.location.href = `/report/${reportId}`;
+}
+
+function downloadReport(reportId) {
+    window.location.href = `/report/${reportId}/download`;
+}
+
+function deleteReport(reportId) {
+    if (confirm("{{ t['delete_confirm'] }}")) {
+        fetch(`/report/${reportId}`, {
+            method: 'DELETE'
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            }
+        })
+        .catch(error => console.error('Erreur:', error));
+    }
+}
+
+// Initialiser le compteur au chargement
+document.addEventListener('DOMContentLoaded', function() {
+    const totalReports = document.querySelectorAll('.report-card').length;
+    document.getElementById('filter-count').textContent = `Affichage de tous les rapports (${totalReports})`;
+});
+</script>
+{% endblock %}
+{% endblock %} 

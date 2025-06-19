@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="neon-card" style="max-width:700px;margin:40px auto 0 auto;padding:0 0 24px 0;">
+    <div class="neon-card-header">
+        <h2 class="neon-title">Analyse de Dump Mémoire</h2>
+    </div>
+    <form id="memoryForm" enctype="multipart/form-data" style="padding:24px;">
+        <div class="mb-4">
+            <label for="file" class="neon-label">Fichier dump mémoire <span class="neon-label-hint">(.raw, .mem, .dmp)</span></label>
+            <input type="file" class="neon-input" id="file" name="file" accept=".raw,.mem,.dmp" required>
+        </div>
+        <div class="mb-4">
+            <label class="neon-label">Système d'exploitation</label><br>
+            <label class="neon-radio"><input type="radio" name="os" id="windows" value="windows" checked> Windows</label>
+            <label class="neon-radio"><input type="radio" name="os" id="linux" value="linux"> Linux</label>
+        </div>
+        <div class="mb-4">
+            <label for="plugin" class="neon-label">Plugin Volatility3</label>
+            <select class="neon-select" id="plugin" name="plugin" required>
+                <optgroup label="Windows Plugins" id="windows-plugins">
+                    {% for plugin in plugins.windows %}
+                    <option value="{{ plugin.value }}" title="{{ plugin.description }}">{{ plugin.name }}</option>
+                    {% endfor %}
+                </optgroup>
+                <optgroup label="Linux Plugins" id="linux-plugins" style="display:none;">
+                    {% for plugin in plugins.linux %}
+                    <option value="{{ plugin.value }}" title="{{ plugin.description }}">{{ plugin.name }}</option>
+                    {% endfor %}
+                </optgroup>
+            </select>
+            <div class="neon-description" id="plugin-description"></div>
+        </div>
+        <div style="text-align:center;">
+            <button type="submit" class="neon-btn" id="analyzeBtn">
+                <i class="fas fa-search"></i> Analyser
+            </button>
+        </div>
+    </form>
+    <div class="neon-card mt-4" id="results" style="display:none;">
+        <div class="neon-card-header d-flex justify-content-between align-items-center">
+            <h5 class="neon-title" style="font-size:1.2em;">Résultats de l'analyse</h5>
+            <div class="download-btn-group">
+                <button class="neon-btn neon-btn-outline" onclick="downloadReport('txt')">
+                    TXT
+                </button>
+                <button class="neon-btn neon-btn-outline" onclick="downloadReport('pdf')">
+                    PDF
+                </button>
+                <button class="neon-btn neon-btn-outline" onclick="downloadReport('json')">
+                    JSON
+                </button>
+                <button class="neon-btn neon-btn-outline" onclick="downloadReport('csv')">
+                    CSV
+                </button>
+            </div>
+        </div>
+        <div class="neon-card-body">
+            <pre id="output" class="neon-output"></pre>
+        </div>
+    </div>
+</div>
+
+<style>
+.neon-card {
+    background: #111217;
+    border: 2px solid #00ffc8;
+    border-radius: 12px;
+    box-shadow: 0 0 12px #00ffc8a0;
+    margin-bottom: 32px;
+}
+.neon-card-header {
+    border-bottom: 1px solid #00ffc8;
+    padding: 18px 24px 0 24px;
+}
+.neon-title {
+    color: #00ffc8;
+    font-weight: 700;
+    margin-bottom: 0;
+}
+.neon-label {
+    color: #00ffc8;
+    font-weight: 500;
+    margin-bottom: 6px;
+    display: block;
+}
+.neon-label-hint {
+    color: #7fffd4;
+    font-size: 0.95em;
+}
+.neon-input, .neon-select {
+    width: 100%;
+    background: #181a20;
+    border: 1.5px solid #00ffc8;
+    color: #fff;
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-top: 4px;
+    margin-bottom: 2px;
+    font-size: 1em;
+}
+.neon-radio {
+    color: #00ffc8;
+    margin-right: 18px;
+    font-weight: 500;
+    font-size: 1em;
+}
+.neon-btn {
+    background: #00ffc8;
+    color: #181a20;
+    border: none;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 1.1em;
+    padding: 10px 32px;
+    box-shadow: 0 0 8px #00ffc8a0;
+    transition: background 0.2s, color 0.2s;
+    cursor: pointer;
+}
+.neon-btn:hover {
+    background: #181a20;
+    color: #00ffc8;
+    border: 1.5px solid #00ffc8;
+}
+.neon-btn-outline {
+    background: transparent;
+    color: #00ffc8;
+    border: 1.5px solid #00ffc8;
+    box-shadow: none;
+    padding: 6px 18px;
+    font-size: 1em;
+}
+.neon-btn-outline:hover {
+    background: #00ffc8;
+    color: #181a20;
+}
+.neon-description {
+    color: #7fffd4;
+    font-size: 0.98em;
+    margin-top: 2px;
+}
+.neon-output {
+    background: #181a20;
+    color: #00ffc8;
+    border-radius: 6px;
+    padding: 16px;
+    font-size: 1em;
+    max-height: 350px;
+    overflow-y: auto;
+}
+.download-btn-group { display: flex; gap: 10px; }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('memoryForm');
+    const osRadios = document.getElementsByName('os');
+    const pluginSelect = document.getElementById('plugin');
+    const windowsPlugins = document.getElementById('windows-plugins');
+    const linuxPlugins = document.getElementById('linux-plugins');
+    const pluginDescription = document.getElementById('plugin-description');
+    const results = document.getElementById('results');
+    const output = document.getElementById('output');
+
+    osRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'windows') {
+                windowsPlugins.style.display = '';
+                linuxPlugins.style.display = 'none';
+                pluginSelect.value = '{{ plugins.windows[0].value }}';
+            } else {
+                windowsPlugins.style.display = 'none';
+                linuxPlugins.style.display = '';
+                pluginSelect.value = '{{ plugins.linux[0].value }}';
+            }
+        });
+    });
+    pluginSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        pluginDescription.textContent = selectedOption.title;
+    });
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        try {
+            analyzeBtn.disabled = true;
+            analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyse en cours...';
+            const response = await fetch('/api/analyze-memory', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+            console.log('[DEBUG] Réponse analyse mémoire:', data);
+            output.textContent = data.output;
+            results.style.display = 'block';
+            if (data.filename) {
+                results.setAttribute('data-filename', data.filename);
+                // Afficher le nom de fichier dans la page pour debug
+                let fn = document.getElementById('debug-filename');
+                if (!fn) {
+                    fn = document.createElement('div');
+                    fn.id = 'debug-filename';
+                    fn.style.color = '#00ffbb';
+                    fn.style.fontWeight = 'bold';
+                    results.prepend(fn);
+                }
+                fn.textContent = '[DEBUG] Fichier mémoire généré : ' + data.filename;
+            }
+            if (data.status !== 'ok') {
+                throw new Error(data.output);
+            }
+        } catch (error) {
+            output.textContent = `Erreur: ${error.message}`;
+            results.style.display = 'block';
+        } finally {
+            analyzeBtn.disabled = false;
+            analyzeBtn.innerHTML = '<i class="fas fa-search"></i> Analyser';
+        }
+    });
+});
+function downloadReport(format) {
+    // Récupérer le nom du fichier depuis l'attribut data-filename
+    const results = document.getElementById('results');
+    const filename = results.getAttribute('data-filename');
+    console.log('[DEBUG] downloadReport - data-filename:', filename);
+    if (!filename) {
+        alert('Aucun fichier analysé ou nom de fichier manquant.');
+        return;
+    }
+    const url = `/api/download-report?type=memory&filename=${encodeURIComponent(filename)}&format=${format}`;
+    window.open(url, '_blank');
+}
+</script>
+{% endblock %} 

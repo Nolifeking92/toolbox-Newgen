@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Toolbox Newgen Cyber{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    {% if current_user.is_authenticated and not hide_sidebar %}
+    <a href="{{ url_for('logout') }}" class="logout-btn">🚪 {{ t['logout'] }}</a>
+    {% endif %}
+    {% if not hide_sidebar %}
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <span class="logo-text-cyan">Toolbox</span>
+                <span class="logo-text-gradient">Newgen</span>
+                <span class="logo-text-pink">Cyber</span>
+            </div>
+            {% if current_user.is_authenticated %}
+            <div style="margin-top:18px;color:#fff;font-size:1em;text-align:center;">
+                Connecté : <b>{{ current_user.username }}</b><br>
+                <span style="color:var(--neon-cyan);font-size:0.95em;">({{ current_user.role }})</span>
+            </div>
+            {% endif %}
+        </div>
+        <div class="sidebar-menu">
+            <a href="{{ url_for('dashboard') }}" class="menu-item {% if active_page == 'dashboard' %}active{% endif %}">
+                <span class="icon">📊</span>
+                <span class="text">Dashboard</span>
+            </a>
+            <a href="{{ url_for('scans') }}" class="menu-item {% if active_page == 'scans' %}active{% endif %}">
+                <span class="icon">🔍</span>
+                <span class="text">Scans</span>
+            </a>
+            <a href="{{ url_for('rapport') }}" class="menu-item {% if active_page == 'rapport' %}active{% endif %}">
+                <span class="icon">📄</span>
+                <span class="text">Rapport</span>
+            </a>
+            <a href="{{ url_for('graphique') }}" class="menu-item {% if active_page == 'graphique' %}active{% endif %}">
+                <span class="icon">📈</span>
+                <span class="text">Graphique</span>
+            </a>
+            {% if current_user.is_authenticated and current_user.role == 'admin' %}
+            <a href="{{ url_for('manage_users') }}" class="menu-item {% if active_page == 'users' %}active{% endif %}">
+                <span class="icon">👤</span>
+                <span class="text">Utilisateurs</span>
+            </a>
+            {% endif %}
+            {% if current_user.is_authenticated %}
+            {# Le bouton de déconnexion est maintenant en haut à droite, donc retiré de la sidebar #}
+            {% endif %}
+            <a href="/feedback" class="menu-item">
+                <span class="icon">📝</span>
+                <span class="text">Feedback</span>
+            </a>
+            {% if current_user.is_authenticated and current_user.role == 'admin' %}
+            <a href="{{ url_for('admin_feedbacks') }}" class="menu-item {% if active_page == 'admin_feedbacks' %}active{% endif %}">
+                <span class="icon">🗂️</span>
+                <span class="text">Feedbacks (admin)</span>
+            </a>
+            {% endif %}
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('planification') }}" class="menu-item {% if active_page == 'planification' %}active{% endif %}">
+                <span class="icon">⏰</span>
+                <span class="text">Planification</span>
+            </a>
+            {% endif %}
+            <a href="{{ url_for('projects') }}" class="menu-item {% if active_page == 'projects' %}active{% endif %}">
+                <span class="icon">📁</span>
+                <span class="text">Projets</span>
+            </a>
+            <div class="menu-dropdown">
+                <div class="menu-item dropdown-toggle">
+                    <span class="icon">🧪</span>
+                    <span class="text">Analyse</span>
+                </div>
+                <div class="dropdown-content">
+                    <a href="{{ url_for('malware_native') }}">Analyse Malware</a>
+                    <a href="{{ url_for('memory_analysis') }}">Analyse Mémoire</a>
+                    <a href="{{ url_for('network_analysis') }}">Analyse Réseau (PCAP)</a>
+                </div>
+            </div>
+            {% if current_user.is_authenticated and current_user.role == 'admin' %}
+            <a href="{{ url_for('admin_defense') }}" class="menu-item {% if active_page == 'admin_defense' %}active{% endif %}">
+                <span class="icon">🛡️</span>
+                <span class="text">Défense (admin)</span>
+            </a>
+            {% endif %}
+        </div>
+    </nav>
+    {% endif %}
+
+    <main class="content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html> 

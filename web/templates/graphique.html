@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Graphiques - Toolbox Newgen Cyber{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="page-content">
+    <h2 class="page-title">Visualisation des données</h2>
+
+    <div class="charts-grid">
+        <div class="chart-card">
+            <h3>Distribution des vulnérabilités</h3>
+            <div class="chart-container">
+                <canvas id="vulnChart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <h3>Activité des scans</h3>
+            <div class="chart-container">
+                <canvas id="scanActivityChart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <h3>Types de ports détectés</h3>
+            <div class="chart-container">
+                <canvas id="portsChart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <h3>Services détectés</h3>
+            <div class="chart-container">
+                <canvas id="servicesChart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <h3>Malware : Infectés vs Sains</h3>
+            <div class="chart-container">
+                <canvas id="malwarePieChart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <h3>Malware : Types détectés</h3>
+            <div class="chart-container">
+                <canvas id="malwareBarChart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <h3>Malware : Infections dans le temps</h3>
+            <div class="chart-container">
+                <canvas id="malwareTimelineChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 25px;
+    margin-top: 20px;
+}
+
+.chart-card {
+    background: var(--darker-bg);
+    border: 1px solid var(--neon-cyan);
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.chart-card h3 {
+    color: var(--neon-cyan);
+    margin-bottom: 20px;
+    font-size: 1.2em;
+}
+
+.chart-container {
+    position: relative;
+    width: 420px;
+    max-width: 100%;
+    margin: 0 auto;
+    height: 320px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+#servicesChart {
+    width: 300px !important;
+    height: 300px !important;
+    display: block;
+}
+</style>
+
+<main>
+
+</main>
+
+<script>
+  // Debug: afficher les données reçues
+  console.log('Données reçues du serveur:');
+  console.log('vulnData:', {{ stats.vulns|tojson }});
+  console.log('activityDates:', {{ activity_dates|safe }});
+  console.log('activityCounts:', {{ activity_counts|safe }});
+  console.log('portsLabels:', {{ ports_labels|safe }});
+  console.log('portsData:', {{ ports_data|safe }});
+  console.log('servicesLabels:', {{ services_labels|safe }});
+  console.log('servicesData:', {{ services_data|safe }});
+
+  // Initialisation des données avec les valeurs du serveur
+  const vulnStats = {{ stats.vulns|tojson }};
+  window.vulnData = [
+    vulnStats.critical || 0,
+    vulnStats.high || 0,
+    vulnStats.medium || 0,
+    vulnStats.low || 0
+  ];
+  window.activityDates = {{ activity_dates|safe }};
+  window.activityCounts = {{ activity_counts|safe }};
+  window.portsLabels = {{ ports_labels|safe }};
+  window.portsData = {{ ports_data|safe }};
+  window.servicesLabels = {{ services_labels|safe }};
+  window.servicesData = {{ services_data|safe }};
+
+  // Debug: afficher les données après initialisation
+  console.log('Données initialisées:');
+  console.log('window.vulnData:', window.vulnData);
+  console.log('window.activityDates:', window.activityDates);
+  console.log('window.activityCounts:', window.activityCounts);
+  console.log('window.portsLabels:', window.portsLabels);
+  console.log('window.portsData:', window.portsData);
+  console.log('window.servicesLabels:', window.servicesLabels);
+  console.log('window.servicesData:', window.servicesData);
+</script>
+<script src="/static/main.js"></script>
+{% endblock %} 

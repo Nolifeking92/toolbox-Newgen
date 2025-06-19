@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}Planifier un scan{% endblock %}
+{% block content %}
+<div class="page-content" style="max-width:500px;margin:40px auto;padding:30px;background:var(--darker-bg);border:2px solid var(--neon-cyan);border-radius:12px;box-shadow:0 0 24px #00FFBB22;">
+  <h2 class="page-title" style="color:var(--neon-cyan);text-align:center;margin-bottom:24px;">Planifier un scan</h2>
+  <form method="post" action="{% if edit_plan %}{{ url_for('edit_plan', plan_id=edit_plan.id) }}{% else %}/planification{% endif %}" id="plan-form">
+    <label style="color:var(--neon-cyan);">Outil à utiliser :</label>
+    <select name="outil" class="cyber-input" required style="margin-bottom:16px;">
+      <option value="nmap" {% if edit_plan and edit_plan.outil=='nmap' %}selected{% endif %}>Nmap</option>
+      <option value="sqlmap" {% if edit_plan and edit_plan.outil=='sqlmap' %}selected{% endif %}>SQLmap</option>
+      <option value="hydra" {% if edit_plan and edit_plan.outil=='hydra' %}selected{% endif %}>Hydra</option>
+      <option value="zap" {% if edit_plan and edit_plan.outil=='zap' %}selected{% endif %}>ZAP</option>
+    </select>
+    <label style="color:var(--neon-cyan);">Cible à scanner :</label>
+    <input type="text" name="cible" placeholder="IP ou domaine" class="cyber-input" required style="margin-bottom:16px;" value="{% if edit_plan %}{{ edit_plan.cible }}{% endif %}">
+    <label style="color:var(--neon-cyan);">Type de planification :</label>
+    <select name="type_plan" id="type_plan" class="cyber-input" required style="margin-bottom:16px;">
+      <option value="jour" {% if edit_plan and edit_plan.type_plan=='jour' %}selected{% endif %}>Tous les jours à une heure précise</option>
+      <option value="unique" {% if edit_plan and edit_plan.type_plan=='unique' %}selected{% endif %}>À une date et heure précise</option>
+    </select>
+    <div id="heure_block" {% if edit_plan and edit_plan.type_plan!='jour' %}style="display:none;"{% endif %}>
+      <label style="color:var(--neon-cyan);">Heure :</label>
+      <input type="time" name="heure" class="cyber-input" style="margin-bottom:16px;" value="{% if edit_plan and edit_plan.type_plan=='jour' %}{{ edit_plan.date_heure }}{% endif %}">
+    </div>
+    <div id="datetime_block" {% if not edit_plan or edit_plan.type_plan!='unique' %}style="display:none;"{% endif %}>
+      <label style="color:var(--neon-cyan);">Date et heure :</label>
+      <input type="datetime-local" name="datetime" class="cyber-input" style="margin-bottom:16px;" value="{% if edit_plan and edit_plan.type_plan=='unique' %}{{ edit_plan.date_heure }}{% endif %}">
+    </div>
+    <button type="submit" class="cyber-button">{% if edit_plan %}Modifier{% else %}Planifier le scan{% endif %}</button>
+    {% if edit_plan %}
+      <a href="{{ url_for('planification') }}" class="cyber-button" style="background:rgba(255,0,102,0.2);margin-top:10px;">Annuler la modification</a>
+    {% endif %}
+  </form>
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <ul style="margin-top:1em;">
+      {% for message in messages %}
+        <li style="color:var(--neon-cyan);font-weight:bold;">{{ message }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+  <hr style="margin:2em 0;border:1px solid var(--neon-cyan);opacity:0.2;">
+  <h3 style="color:var(--neon-cyan);margin-bottom:1em;">Scans planifiés</h3>
+  <table style="width:100%;border-collapse:collapse;background:var(--darker-bg);border-radius:8px;overflow:hidden;">
+    <tr style="background:rgba(0,255,187,0.08);color:var(--neon-cyan);font-weight:bold;">
+      <th style="padding:10px 6px;">Outil</th>
+      <th style="padding:10px 6px;">Cible</th>
+      <th style="padding:10px 6px;">Type</th>
+      <th style="padding:10px 6px;">Date/Heure</th>
+      <th style="padding:10px 6px;">Utilisateur</th>
+      <th style="padding:10px 6px;">Actions</th>
+    </tr>
+    {% for plan in plans %}
+    <tr style="border-bottom:1px solid rgba(0,255,187,0.08);">
+      <td style="padding:8px 6px;">{{ plan.outil }}</td>
+      <td style="padding:8px 6px;">{{ plan.cible }}</td>
+      <td style="padding:8px 6px;">{{ 'Tous les jours à ' + plan.date_heure if plan.type_plan == 'jour' else 'Unique' }}</td>
+      <td style="padding:8px 6px;">{{ plan.date_heure }}</td>
+      <td style="padding:8px 6px;">{{ plan.username }}</td>
+      <td style="padding:8px 6px;">
+        {% if current_user.role == 'admin' or plan.user_id == current_user.id %}
+        <a href="{{ url_for('edit_plan', plan_id=plan.id) }}" class="cyber-button" style="width:auto;padding:4px 12px;font-size:0.95em;">Modifier</a>
+        <form method="post" action="{{ url_for('delete_plan', plan_id=plan.id) }}" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce scan planifié ?');">
+          <button type="submit" class="cyber-button" style="width:auto;padding:4px 12px;font-size:0.95em;background:rgba(255,0,102,0.7);">Supprimer</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="6" style="text-align:center;padding:20px;color:#aaa;">Aucun scan planifié.</td></tr>
+    {% endfor %}
+  </table>
+</div>
+<script>
+const typePlan = document.getElementById('type_plan');
+const heureBlock = document.getElementById('heure_block');
+const datetimeBlock = document.getElementById('datetime_block');
+typePlan.addEventListener('change', function() {
+  if (this.value === 'jour') {
+    heureBlock.style.display = '';
+    datetimeBlock.style.display = 'none';
+  } else {
+    heureBlock.style.display = 'none';
+    datetimeBlock.style.display = '';
+  }
+});
+</script>
+{% endblock %} 

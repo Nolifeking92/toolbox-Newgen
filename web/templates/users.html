@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Gestion des utilisateurs{% endblock %}
+{% block content %}
+<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+  <h2 class="page-title" style="text-align:center;">Gestion des utilisateurs</h2>
+  <div class="scan-form" style="max-width:600px;margin-bottom:2em;">
+      <h3 style="color:var(--neon-cyan);margin-bottom:1em;">Ajouter un utilisateur</h3>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <ul>
+          {% for category, message in messages %}
+            <li style="color:var(--neon-pink);font-weight:bold;">{{ message }}</li>
+          {% endfor %}
+          </ul>
+        {% endif %}
+      {% endwith %}
+      <form method="post" style="display:flex;gap:1em;flex-wrap:wrap;align-items:end;">
+          <div style="flex:1;min-width:120px;">
+              <label style="color:var(--neon-cyan);font-weight:500;">Nom d'utilisateur</label>
+              <input type="text" name="username" required class="cyber-input">
+          </div>
+          <div style="flex:1;min-width:120px;">
+              <label style="color:var(--neon-cyan);font-weight:500;">Mot de passe</label>
+              <input type="password" name="password" required class="cyber-input">
+          </div>
+          <div style="flex:1;min-width:120px;">
+              <label style="color:var(--neon-cyan);font-weight:500;">Rôle</label>
+              <select name="role" class="cyber-input">
+                  <option value="user">Utilisateur</option>
+                  <option value="admin">Admin</option>
+              </select>
+          </div>
+          <div style="min-width:120px;">
+              <input type="hidden" name="add" value="1">
+              <button type="submit" class="cyber-button">Ajouter</button>
+          </div>
+      </form>
+  </div>
+  <div class="scan-form" style="max-width:600px;">
+      <h3 style="color:var(--neon-cyan);margin-bottom:1em;">Liste des utilisateurs</h3>
+      <table style="width:100%;border-collapse:collapse;">
+          <tr style="color:var(--neon-cyan);font-weight:bold;background:rgba(0,255,187,0.05);">
+              <th style="padding:8px 4px;">Nom</th>
+              <th style="padding:8px 4px;">Rôle</th>
+              <th style="padding:8px 4px;">Action</th>
+          </tr>
+          {% for user in users %}
+          <tr style="border-bottom:1px solid rgba(0,255,187,0.08);">
+              <td style="padding:8px 4px;">{{ user.username }}</td>
+              <td style="padding:8px 4px;">{{ user.role }}</td>
+              <td style="padding:8px 4px;">
+                  {% if user.username != 'admin' %}
+                  <form method="post" style="display:inline;">
+                      <input type="hidden" name="delete" value="1">
+                      <input type="hidden" name="user_id" value="{{ user.id }}">
+                      <button type="submit" class="cyber-button" style="padding:6px 16px;font-size:0.95em;background:var(--neon-pink);">Supprimer</button>
+                  </form>
+                  {% else %}
+                  <span style="color:var(--neon-cyan);font-weight:bold;">(admin)</span>
+                  {% endif %}
+              </td>
+          </tr>
+          {% endfor %}
+      </table>
+  </div>
+</div>
+{% endblock %} 

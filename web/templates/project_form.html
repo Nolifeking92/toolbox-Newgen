@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Projet{% endblock %}
+{% block extra_head %}
+<!-- Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+{% endblock %}
+{% block content %}
+<div class="page-content">
+    <h2 class="page-title">{{ 'Éditer le projet' if project else 'Nouveau projet' }}</h2>
+    <form method="post" class="cyber-form">
+        <label>Nom du projet :<br>
+            <input type="text" name="name" value="{{ project.name if project else '' }}" required class="cyber-input">
+        </label><br>
+        <label>Description :<br>
+            <textarea name="description" class="cyber-input">{{ project.description if project else '' }}</textarea>
+        </label><br>
+        <label>Client :<br>
+            <input type="text" name="client" value="{{ project.client if project else '' }}" class="cyber-input">
+        </label><br>
+        <label>Date de début :<br>
+            <input type="text" name="start_date" value="{{ project.start_date if project else '' }}" class="cyber-input flatpickr" style="max-width:200px;">
+        </label><br>
+        <label>Date de fin :<br>
+            <input type="text" name="end_date" value="{{ project.end_date if project else '' }}" class="cyber-input flatpickr" style="max-width:200px;">
+        </label><br>
+        <label>Statut :<br>
+            <select name="status" class="cyber-input">
+                <option value="En cours" {% if project and project.status == 'En cours' %}selected{% endif %}>En cours</option>
+                <option value="Terminé" {% if project and project.status == 'Terminé' %}selected{% endif %}>Terminé</option>
+                <option value="En attente" {% if project and project.status == 'En attente' %}selected{% endif %}>En attente</option>
+            </select>
+        </label><br>
+        <button type="submit" class="cyber-button">{{ 'Mettre à jour' if project else 'Créer' }}</button>
+    </form>
+</div>
+{% endblock %}
+{% block scripts %}
+<!-- Flatpickr JS -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+flatpickr('.flatpickr', {dateFormat: 'Y-m-d'});
+</script>
+{% endblock %} 

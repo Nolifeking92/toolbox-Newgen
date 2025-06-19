@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Analyse Réseau (PCAP) - Toolbox Newgen{% endblock %}
+{% block content %}
+<div class="page-content">
+    <h2 class="page-title">Analyse de trafic réseau (PCAP)</h2>
+    <form id="network-form" enctype="multipart/form-data">
+        <label for="pcap-file">Fichier PCAP :</label>
+        <input type="file" id="pcap-file" name="file" accept=".pcap,.cap" required class="cyber-input"><br><br>
+        <label for="format">Format du rapport :</label>
+        <select id="format" name="format" class="cyber-input">
+            <option value="txt">TXT (brut)</option>
+            <option value="csv">CSV (tableau)</option>
+            <option value="json">JSON</option>
+        </select><br><br>
+        <label for="filter">Filtre tshark (optionnel) :</label>
+        <input type="text" id="filter" name="filter" placeholder="ex: http, dns, tcp.port==80" class="cyber-input"><br>
+        <div style="font-size:0.95em;color:#aaa;margin-bottom:10px;">
+            Exemples :
+            <ul style="margin:4px 0 0 18px;padding:0;">
+                <li><b>http</b> (trafic HTTP)</li>
+                <li><b>dns</b> (trafic DNS)</li>
+                <li><b>tcp.port==80</b> (TCP port 80)</li>
+                <li><b>ip.src==192.168.1.1</b> (source IP spécifique)</li>
+                <li><b>frame contains "login"</b> (paquets contenant le mot "login")</li>
+            </ul>
+            <span style="color:#00ffbb;">Laisse vide pour tout afficher.</span>
+        </div>
+        <button type="submit" class="cyber-button">Analyser</button>
+    </form>
+    <div id="network-result" style="margin-top:20px;"></div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('network-form').onsubmit = async function(e) {
+    e.preventDefault();
+    const form = e.target;
+    const data = new FormData(form);
+    const resultDiv = document.getElementById('network-result');
+    resultDiv.innerHTML = 'Analyse en cours...';
+    const res = await fetch('/api/analyze-network', { method: 'POST', body: data });
+    const json = await res.json();
+    if(json.status === 'ok') {
+        resultDiv.innerHTML = `<b>Rapport généré :</b><br>
+        <a href="/api/download-report?type=network&filename=${encodeURIComponent(json.filename)}&format=${json.format}" target="_blank" class="cyber-button">Télécharger le rapport</a>`;
+    } else {
+        resultDiv.innerHTML = `<span style='color:#ff3366;'>Erreur : ${json.output || 'Analyse échouée.'}</span>`;
+    }
+};
+</script>
+{% endblock %} 

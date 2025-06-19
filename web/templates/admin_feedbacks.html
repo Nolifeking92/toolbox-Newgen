@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Feedbacks utilisateurs (admin){% endblock %}
+{% block content %}
+<div class="page-content" style="max-width:800px;margin:2em auto;">
+    <h2 class="page-title">Feedbacks utilisateurs</h2>
+    <div style="margin-bottom:1.5em;">
+        <a href="/feedback" class="cyber-button" style="width:auto;display:inline-block;">Saisir un nouveau feedback</a>
+    </div>
+    <div style="margin-bottom:1em;">
+        <b>Trier par :</b>
+        <a href="?sort=note&order={{ note_order }}" class="cyber-button" style="width:auto;padding:6px 18px;font-size:0.95em;">Note</a>
+        <a href="?sort=date&order={{ date_order }}" class="cyber-button" style="width:auto;padding:6px 18px;font-size:0.95em;">Date</a>
+    </div>
+    <table style="width:100%;border-collapse:collapse;background:var(--darker-bg);border-radius:8px;overflow:hidden;">
+        <tr style="background:rgba(0,255,187,0.08);color:var(--neon-cyan);font-weight:bold;">
+            <th style="padding:10px 6px;">Date</th>
+            <th style="padding:10px 6px;">Utilisateur</th>
+            <th style="padding:10px 6px;">Note</th>
+            <th style="padding:10px 6px;">Avis</th>
+        </tr>
+        {% for fb in feedbacks %}
+        <tr style="border-bottom:1px solid rgba(0,255,187,0.08);">
+            <td style="padding:8px 6px;font-size:0.98em;">{{ fb.date|replace('T', ' ')|truncate(19, True, '') }}</td>
+            <td style="padding:8px 6px;">{{ fb.user }}</td>
+            <td style="padding:8px 6px;font-size:1.2em;">{{ '⭐' * fb.note }}</td>
+            <td style="padding:8px 6px;">{{ fb.avis }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" style="text-align:center;padding:20px;color:#aaa;">Aucun feedback pour le moment.</td></tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %} 

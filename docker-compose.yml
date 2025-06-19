@@ -1,0 +1,104 @@
+services:
+  # Services d'analyse de fichiers
+  binwalk:
+    build: ./tools/binwalk
+    volumes:
+      - ./analysis/samples:/samples
+      - ./analysis/reports:/reports
+    working_dir: /samples
+    tty: true
+
+  clamav:
+    build: ./tools/clamav
+    volumes:
+      - ./analysis/samples:/scan
+      - ./analysis/reports:/reports
+    working_dir: /scan
+    tty: true
+
+  # Services d'analyse mémoire
+  volatility3:
+    build: ./tools/volatility3
+    volumes:
+      - ./analysis/samples:/data/samples:ro
+      - ./analysis/reports:/data/reports
+      - ./analysis/plugins:/data/plugins
+    environment:
+      - PYTHONPATH=/usr/local/lib/python3.8/site-packages
+    tty: true
+
+  # Service d'analyse réseau
+  tshark:
+    build: 
+      context: .
+      dockerfile: Dockerfile.tshark
+    volumes:
+      - ./analysis/samples:/data/samples:ro
+      - ./analysis/reports:/data/reports
+    tty: true
+
+  # Services de scan réseau et web
+  nmap:
+    image: uzyexe/nmap:latest
+    volumes:
+      - ./analysis/samples:/targets
+      - ./analysis/reports:/reports
+    working_dir: /targets
+    tty: true
+
+  dirsearch:
+    build:
+      context: .
+      dockerfile: Dockerfile.dirsearch
+    volumes:
+      - ./analysis/samples:/targets
+      - ./analysis/reports:/reports
+    working_dir: /targets
+    tty: true
+
+  # Services de test d'intrusion
+  hydra:
+    build:
+      context: .
+      dockerfile: Dockerfile.hydra
+    volumes:
+      - ./analysis/samples:/targets
+      - ./analysis/reports:/reports
+    working_dir: /targets
+    tty: true
+
+  sqlmap:
+    build:
+      context: .
+      dockerfile: Dockerfile.sqlmap
+    volumes:
+      - ./analysis/samples:/targets
+      - ./analysis/reports:/reports
+    working_dir: /targets
+    tty: true
+
+  # Services de crack de mots de passe
+  john:
+    build:
+      context: .
+      dockerfile: Dockerfile.john
+    volumes:
+      - ./analysis/samples:/targets
+      - ./analysis/reports:/reports
+    working_dir: /targets
+    tty: true
+
+  # Service de scan de vulnérabilités web
+  zap:
+    build:
+      context: .
+      dockerfile: Dockerfile.zap
+    volumes:
+      - ./analysis/samples:/zap/wrk
+      - ./analysis/reports:/reports
+    working_dir: /zap/wrk
+    tty: true
+
+networks:
+  default:
+    driver: bridge 

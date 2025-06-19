@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Feedback utilisateur{% endblock %}
+{% block content %}
+<div class="page-content" style="max-width:500px;margin:2em auto;">
+    <h2 class="page-title">Donnez votre avis</h2>
+    <form method="post" action="/feedback" class="scan-form" style="display:flex;flex-direction:column;gap:1.2em;">
+        <label for="note">Note globale :</label>
+        <select name="note" id="note" class="cyber-input" required>
+            <option value="5">⭐⭐⭐⭐⭐ (Excellent)</option>
+            <option value="4">⭐⭐⭐⭐ (Très bien)</option>
+            <option value="3">⭐⭐⭐ (Bien)</option>
+            <option value="2">⭐⭐ (Moyen)</option>
+            <option value="1">⭐ (À améliorer)</option>
+        </select>
+        <label for="avis">Votre avis ou suggestion :</label>
+        <textarea name="avis" id="avis" rows="4" class="cyber-input" placeholder="Votre retour, une idée, un bug, une amélioration..." required></textarea>
+        <button type="submit" class="cyber-button">Envoyer le feedback</button>
+    </form>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul style="margin-top:1em;">
+        {% for message in messages %}
+          <li style="color:var(--neon-cyan);font-weight:bold;">{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+</div>
+{% endblock %} 

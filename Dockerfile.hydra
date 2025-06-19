@@ -1,0 +1,18 @@
+FROM ubuntu:20.04
+
+# Éviter les questions interactives
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Installation de hydra et des dépendances
+RUN apt-get update && apt-get install -y \
+    hydra \
+    && rm -rf /var/lib/apt/lists/*
+
+# Créer les répertoires de travail
+RUN mkdir -p /targets /reports
+
+# Définir le répertoire de travail
+WORKDIR /targets
+
+# Commande par défaut
+CMD ["hydra", "--help"] 

@@ -1,0 +1,19 @@
+FROM ubuntu:20.04
+
+# Éviter les questions interactives pendant l'installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Installation de tshark et des dépendances
+RUN apt-get update && apt-get install -y \
+    tshark \
+    wireshark-common \
+    && rm -rf /var/lib/apt/lists/*
+
+# Créer les répertoires de travail
+RUN mkdir -p /data/samples /data/reports
+
+# Définir le répertoire de travail
+WORKDIR /data/samples
+
+# Commande par défaut
+CMD ["tshark", "--help"] 

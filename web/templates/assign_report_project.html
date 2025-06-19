@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Associer à un projet{% endblock %}
+{% block content %}
+<div class="page-content">
+    <h2 class="page-title">Associer le rapport à un projet</h2>
+    <form method="post" class="cyber-form">
+        <label>Projet :
+            <select name="project_id" class="cyber-input" required>
+                <option value="">-- Choisir un projet --</option>
+                {% for project in projects %}
+                <option value="{{ project.id }}" {% if current_project_id and project.id|string == current_project_id %}selected{% endif %}>{{ project.name }}</option>
+                {% endfor %}
+            </select>
+        </label><br>
+        <button type="submit" class="cyber-button">Associer</button>
+    </form>
+</div>
+{% endblock %} 

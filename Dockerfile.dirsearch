@@ -1,0 +1,21 @@
+FROM python:3.9-slim
+
+# Installation des dépendances
+RUN apt-get update && apt-get install -y \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Cloner dirsearch
+RUN git clone https://github.com/maurosoria/dirsearch.git /dirsearch
+
+# Installer les dépendances Python
+RUN pip install -r /dirsearch/requirements.txt
+
+# Créer les répertoires de travail
+RUN mkdir -p /targets /reports
+
+# Définir le répertoire de travail
+WORKDIR /targets
+
+# Commande par défaut
+CMD ["python", "/dirsearch/dirsearch.py", "--help"] 
